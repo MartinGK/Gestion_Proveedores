@@ -1,0 +1,271 @@
+<?php
+//models/Solicitudes.php
+require_once '../models/Maquinarias.php';
+require_once '../models/Proveedores.php';
+require_once '../models/Notas_credito.php';
+require_once '../models/Usuarios.php';
+require_once '../models/Productos.php';
+
+/**
+* Clase para Solicitudes 
+*
+* @package Administracion_proveedores
+* @author Martin Gainza <martingkoulak@gmail.com>
+* @version 0.1
+*/
+class Solicitudes extends Model {
+	/**
+	* Función que realiza la solicitud de mantenimiento de maquinaria.
+	*
+	* @param int $nro_maq int con el numero de maquinaria a realizar la solicitud
+	* @param string $motivo string con el motivo por el cual se realiza la solicitud
+	*/
+	public function Ped_mant_maq($nro_maq , $motivo){
+		if(!ctype_digit($nro_maq)) die("error numerico");
+		if($nro_maq<1) die("error numerico2");
+		$motivo = $this->db->escapeString($motivo);
+		$datos_maq = (new Maquinarias)->getInfo_maq($nro_maq);
+		$cuit = $datos_maq["cuit"];
+		$modelo = $datos_maq["modelo"];
+		$datos_prov = (new Proveedores)->getInfo_prov($cuit);
+		$razon_social = $datos_prov["razon_social"];
+		$email = $datos_prov["email"];
+		$hoy = date("Y/m/d") ;
+		$this->db->query("INSERT INTO solicitud_mantenimiento(nro_sol_mant, fecha_solicitud, motivo, nro_maquinaria, cuit,estado_sol) VALUES (null,'$hoy','$motivo',$nro_maq,'$cuit','Enviada')");
+ 		$nro_sol_mant = $this->db->UltimoId();
+		$file = fopen("../MailsEnviados/Ped_mant_maq-$nro_sol_mant.txt","w");
+		fputs($file,"to: $email
+			subject: Pedido de mantenimiento
+			message: El gimnasio solicita en el dia de la fecha: $hoy la realizacion de un mantenimiento para la maquina numero: '$nro_maq' modelo: '$modelo' comprada al proveedor '$razon_social' con el cuit: '$cuit' el pedido se realiza por el siguiente motivo: '$motivo'
+			Su numero de solicitud es: $nro_sol_mant, conservela al momento de realizar la operacion en el gimnasio.
+
+			Atentamente, gerencia del gimnasio.");
+		fclose($file);
+
+	}
+	/**
+	* Función que realiza la solicitud de cambio de maquinaria.
+	*
+	* @param int $nro_maq int con el numero de maquinaria a realizar la solicitud
+	* @param string $motivo string con el motivo por el cual se realiza la solicitud
+	*/
+	public function Ped_camb_maq($nro_maq , $motivo){
+		if(!ctype_digit($nro_maq)) die("error numerico");
+		if($nro_maq<1) die("error numerico2");
+		$motivo = $this->db->escapeString($motivo);
+		$datos_maq = (new Maquinarias)->getInfo_maq($nro_maq);
+		$cuit = $datos_maq["cuit"];
+		$modelo = $datos_maq["modelo"];
+		$datos_prov = (new Proveedores)->getInfo_prov($cuit);
+		$razon_social = $datos_prov["razon_social"];
+		$email = $datos_prov["email"];
+		$hoy = date("Y/m/d") ;
+		$this->db->query("INSERT INTO solicitud_cambio(nro_sol_camb, fecha_solicitud, motivo, nro_maquinaria, cuit,estado_sol)
+							 VALUES (null,'$hoy','$motivo',$nro_maq,'$cuit','Enviada')");
+ 		$nro_sol_camb = $this->db->UltimoId();
+		$file = fopen("../MailsEnviados/Ped_camb_maq-$nro_sol_camb.txt","w");
+		fputs($file,"to: $email
+			subject: Pedido de mantenimiento
+			message: El gimnasio solicita en el dia de la fecha: $hoy la realizacion de un mantenimiento para la maquina numero: '$nro_maq' modelo: '$modelo' comprada al proveedor '$razon_social' con el cuit: '$cuit' el pedido se realiza por el siguiente motivo: '$motivo'
+			Su numero de solicitud es: $nro_sol_camb, conservela al momento de realizar la operacion en el gimnasio.
+
+			Atentamente, gerencia del gimnasio.");
+		fclose($file);
+	}
+	/**
+	* Función que realiza la solicitud de reparación de maquinaria.
+	*
+	* @param int $nro_maq int con el numero de maquinaria a realizar la solicitud
+	* @param string $motivo string con el motivo por el cual se realiza la solicitud
+	*/
+	public function Ped_rep_maq($nro_maq , $motivo){
+		if(!ctype_digit($nro_maq)) die("error numerico");
+		if($nro_maq<1) die("error numerico2");
+		$motivo = $this->db->escapeString($motivo);
+		$datos_maq = (new Maquinarias)->getInfo_maq($nro_maq);
+		$cuit = $datos_maq["cuit"];
+		$modelo = $datos_maq["modelo"];
+		$datos_prov = (new Proveedores)->getInfo_prov($cuit);
+		$razon_social = $datos_prov["razon_social"];
+		$email = $datos_prov["email"];
+		$hoy = date("Y/m/d") ;
+		$this->db->query("INSERT INTO solicitud_reparacion(nro_sol_rep, fecha_solicitud, motivo, nro_maquinaria, cuit,estado_sol) VALUES (null,'$hoy','$motivo',$nro_maq,'$cuit','Enviada')");
+ 		$nro_sol_rep = $this->db->UltimoId();
+		$file = fopen("../MailsEnviados/Ped_rep_maq-$nro_sol_rep.txt","w");
+		fputs($file,"to: $email
+			subject: Pedido de mantenimiento
+			message: El gimnasio solicita en el dia de la fecha: $hoy la realizacion de un mantenimiento para la maquina numero: '$nro_maq' modelo: '$modelo' comprada al proveedor '$razon_social' con el cuit: '$cuit' el pedido se realiza por el siguiente motivo: '$motivo'
+			Su numero de solicitud es: $nro_sol_rep, conservela al momento de realizar la operacion en el gimnasio.
+
+			Atentamente, gerencia del gimnasio.");
+		fclose($file);
+	}
+	/**
+	* Función que realiza la solicitud de devolución de maquinaria.
+	*
+	* @param int $nro_maq int con el numero de maquinaria a realizar la solicitud
+	* @param string $motivo string con el motivo por el cual se realiza la solicitud
+	*/
+	public function Ped_dev_maq($nro_maq , $motivo){
+		if(!ctype_digit($nro_maq)) die("error numerico");
+		if($nro_maq<1) die("error numerico2");
+		$motivo = $this->db->escapeString($motivo);
+		$datos_maq = (new Maquinarias)->getInfo_maq($nro_maq);
+		$cuit = $datos_maq["cuit"];
+		$modelo = $datos_maq["modelo"];
+		$codigo_producto = $datos_maq["codigo_producto"];
+		$datos_prov = (new Proveedores)->getInfo_prov($cuit);
+		$razon_social = $datos_prov["razon_social"];
+		$email = $datos_prov["email"];
+		$hoy = date("Y/m/d") ;
+		$datos_prod = (new Productos)->getInfo_precio($cuit,$codigo_producto);
+		$importe_dev = $datos_prod["precio_producto"];
+		$this->db->query("INSERT INTO solicitud_devolucion(nro_sol_dev,fecha_solicitud,motivo,nro_maquinaria,importe_dev, cuit,estado_sol) VALUES (null,'$hoy','$motivo',$nro_maq, $importe_dev,'$cuit','Enviada')");
+ 		$nro_sol_dev = $this->db->UltimoId();
+		$file = fopen("../MailsEnviados/Ped_dev_maq-$nro_sol_dev.txt","w");
+		fputs($file,"to: $email
+			subject: Pedido de mantenimiento
+			message: El gimnasio solicita en el dia de la fecha: $hoy la realizacion de un mantenimiento para la maquina numero: '$nro_maq' modelo: '$modelo' comprada al proveedor '$razon_social' con el cuit: '$cuit' el pedido se realiza por el siguiente motivo: '$motivo'
+			Su numero de solicitud es: $nro_sol_dev, conservela al momento de realizar la operacion en el gimnasio.
+			Y el importe de la devolucion es: $importe_dev .
+
+			Atentamente, gerencia del gimnasio.");
+		fclose($file);
+	}
+	/**
+	* Función que realiza la actualización de un nuevo mantenimiento de maquinaria.
+	*
+	* @param int $nro_sol_mant int con el numero de solicitud de mantenimiento
+	* @param string $cuit string con el cuit del proveedor al que se le realizo la solicitud
+	*/
+	public function Act_nue_mant($nro_sol_mant,$cuit){
+		if(!ctype_digit($nro_sol_mant)) die("error de solicitud");
+		if(strlen($cuit)!=11) die("el cuit es erroneo");
+		$cuit = $this->db->escapeString($cuit);
+		$this->db->query("SELECT * FROM solicitud_mantenimiento
+							WHERE nro_sol_mant = $nro_sol_mant
+							AND cuit = $cuit");
+		if($this->db->numRows()!=1) die("No existe la solicitud");
+		$datos_sol = $this->db->fetch();
+		$nro_maq = $datos_sol["nro_maquinaria"];
+		if($datos_sol["estado_sol"]=='Resuelta') die("La solicitud ya esta resuelta");
+		$hoy = date("Y-m-d");
+		$this->db->query("UPDATE solicitud_mantenimiento
+							SET estado_sol = 'Resuelta'
+							WHERE nro_sol_mant = $nro_sol_mant
+							AND cuit = $cuit");
+		$datos_maq = (new Maquinarias)->getInfo_maq($nro_maq);
+		$periodo_mant = substr($datos_maq["periodo_mant"],0,2);
+ 		$actual = strtotime($hoy);
+ 		$prox_mant = date("Y-m-d", strtotime("+$periodo_mant month", $actual));
+ 		(new Maquinarias)->nuevoMantenimiento($hoy,$prox_mant,$nro_maq);
+	}
+	/**
+	* Función que realiza la actualización de una nueva concrecion de cambio de maquinaria.
+	*
+	* @param int $nro_sol_camb int con el numero de solicitud de cambio
+	* @param string $cuit string con el cuit del proveedor al que se le realizo la solicitud
+	*/
+	public function Act_con_camb($nro_sol_camb,$cuit){
+		if(!ctype_digit($nro_sol_camb)) die("error de solicitud");
+		if(strlen($cuit)!=11) die("el cuit es erroneo");
+		$cuit = $this->db->escapeString($cuit);
+		$this->db->query("SELECT * FROM solicitud_cambio
+							WHERE nro_sol_camb = $nro_sol_camb
+							AND cuit = $cuit");
+		if($this->db->numRows()!=1) die("No existe la solicitud");
+		$datos_sol = $this->db->fetch();
+		$hoy = date("Y-m-d");
+		$nro_maq = $datos_sol["nro_maquinaria"];
+		if($datos_sol["estado_sol"]=='Resuelta') die("La solicitud ya esta resuelta");
+
+		$this->db->query("UPDATE solicitud_cambio
+							SET estado_sol = 'Resuelta'
+							WHERE nro_sol_camb = $nro_sol_camb
+							AND cuit = $cuit");
+		$datos_maq = (new Maquinarias)->getInfo_maq($nro_maq);
+		$modelo = $datos_maq["modelo"];
+		$fabricante = $datos_maq["fabricante"];
+		$periodo_garantia = $datos_maq["periodo_garantia"];
+		$resumen_de_uso = $datos_maq["resumen_de_uso"];
+		$estado_maq = 'Activa';
+		$ultimo_mant = $hoy;
+		$proximo_mant = $hoy;
+		$periodo_mant = $datos_maq["periodo_mant"];
+		$codigo_producto = $datos_maq["codigo_producto"];
+		(new Maquinarias)->nuevaMaquinaria($modelo, $fabricante, $periodo_garantia, $resumen_de_uso, $estado_maq, $ultimo_mant,
+			$proximo_mant,$periodo_mant,$cuit,$codigo_producto);
+		(new Maquinarias)->nuevoEstadoMaq('Deshabilitada',$nro_maq);
+	}
+	/**
+	* Función que realiza la actualización de una nueva reparación de maquinaria.
+	*
+	* @param int $nro_sol_rep int con el numero de solicitud de reparación
+	* @param string $cuit string con el cuit del proveedor al que se le realizo la solicitud
+	*/
+	public function Act_con_maq($nro_sol_rep,$cuit){
+		if(!ctype_digit($nro_sol_rep)) die("error de solicitud");
+		if(strlen($cuit)!=11) die("el cuit es erroneo");
+		$cuit = $this->db->escapeString($cuit);
+		$this->db->query("SELECT * FROM solicitud_reparacion
+							WHERE nro_sol_rep = $nro_sol_rep
+							AND cuit = $cuit");
+		if($this->db->numRows()!=1) die("No existe la solicitud");
+		$datos_sol = $this->db->fetch();
+		if($datos_sol["estado_sol"]=='Resuelta') die("La solicitud ya esta resuelta");
+		$nro_maq = $datos_sol["nro_maquinaria"];
+
+		$this->db->query("UPDATE solicitud_reparacion
+							SET estado_sol = 'Resuelta'
+							WHERE nro_sol_rep = $nro_sol_rep");
+		(new Maquinarias)->nuevoEstadoMaq('Activa',$nro_maq);
+	}
+	/**
+	* Función que realiza la actualización de una nueva devolución de maquinaria.
+	*
+	* @param int $nro_sol_dev int con el numero de solicitud de devolución
+	* @param string $cuit string con el cuit del proveedor al que se le realizo la solicitud
+	* @param float $imp_neto float con el importe neto entregado por el proveedor
+	*/
+	public function Act_dev($nro_sol_dev,$cuit,$imp_neto){
+		if(!ctype_digit($nro_sol_dev)) die("error de solicitud");
+		if(strlen($cuit)!=11) die("el cuit es erroneo");
+		$cuit = $this->db->escapeString($cuit);
+		if(!is_numeric($imp_neto)) die("error en el importe");
+		$this->db->query("SELECT * FROM solicitud_devolucion
+							WHERE nro_sol_dev = $nro_sol_dev
+							AND cuit = $cuit");
+		if($this->db->numRows()!=1) die("No existe la solicitud");
+		$datos_sol = $this->db->fetch();
+		$total = $datos_sol["importe_dev"] - $imp_neto;
+		if($datos_sol["estado_sol"]=='Resuelta') die("La solicitud ya esta resuelta");
+		if($total <= 0){
+			$this->db->query("UPDATE solicitud_devolucion
+								SET estado_sol = 'Resuelta', importe_dev = $total
+								WHERE nro_sol_dev = $nro_sol_dev");
+		}else{	
+			$this->db->query("UPDATE solicitud_devolucion
+								SET importe_dev = $total
+								WHERE nro_sol_dev = $nro_sol_dev");
+		}
+		(new Notas_credito)->nuevaNota($cuit,$imp_neto,$nro_sol_dev);
+		$datos_cont = (new Usuarios)->getInfoCont();
+		$email = $datos_cont["email"];
+		$hoy = date("Y-m-d");
+		if($total>0) $texto = "Al proveedor le falta pagar un total de $total";
+		if($total<0){
+			$total = $imp_net -$datos_sol["importe_dev"];
+			$texto = "Hay que devolverle al proveedor un total de $total";
+		}
+		if($total==0) $texto = "El proveedor pago la totalidad del pedido de devolucion";
+
+		$file = fopen("../MailsEnviados/Nueva_nota_cred-$nro_sol_dev.txt","w");
+		fputs($file,"to: $email
+			subject: Aviso de nueva nota de credito
+			message: El gimnasio informa al Contador que en el dia de al fecha: $hoy Se recibio una nota de credito con el valor de $imp_neto para el numero de solicitud: $nro_sol_dev. 
+				$texto.
+
+			Atentamente, gerencia del gimnasio.");
+		fclose($file);
+	}
+}

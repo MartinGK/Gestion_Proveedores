@@ -1,0 +1,21 @@
+to: martingeka@yopmail.com
+					subject: Pedido de nueva mercaderia
+					message: El gimnasio solicita a Martin Geka los siguiente productos:
+						3   Gaytorade Naranja     ($60)
+
+					1   Agua Villavicencio 2L     ($20)
+
+					3   Gaytorade Naranja     ($60)
+
+					1   Agua Villavicencio 2L     ($20)
+
+					3   Gaytorade Naranja     ($60)
+
+					1   Agua Villavicencio 2L     ($20)
+
+					3   Energizante Speed     ($30)
+
+					
+					El total a pagar seria de: $ 270.
+					Su numero de pedido es el siguiente: 15 .
+					Atentamente, gerencia del gimnasio.

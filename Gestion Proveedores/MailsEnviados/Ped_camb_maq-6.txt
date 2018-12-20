@@ -1,0 +1,6 @@
+to: maxpower@yopmail.com
+			subject: Pedido de mantenimiento
+			message: El gimnasio solicita en el dia de la fecha: 2018/11/21 la realizacion de un mantenimiento para la maquina numero: '3' modelo: 'Barra Dominek 01' comprada al proveedor 'Max Power' con el cuit: '20399996660' el pedido se realiza por el siguiente motivo: '	asdasdsa		'
+			Su numero de solicitud es: 6, conservela al momento de realizar la operacion en el gimnasio.
+
+			Atentamente, gerencia del gimnasio.

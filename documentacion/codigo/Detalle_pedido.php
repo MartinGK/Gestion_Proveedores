@@ -1,0 +1,34 @@
+<?php
+//models/Detalle_pedido.php
+
+/**
+* Clase para Detalle pedido
+*
+*@package Administracion_proveedores
+*@author Martin Gainza <martingkoulak@gmail.com>
+*@version 0.1
+*/
+class Detalle_pedido extends Model {
+	/**
+	* Función que devuelve los detalles de un pedido.
+	*
+	* @param int $nro_pedido int con un numero de pedido
+	* @return array retorna un array con el conjunto de datos solicitados
+	*/
+	public function darDetalles($nro_pedido){
+		$this->db->query("SELECT * FROM Detalle_pedido
+							WHERE nro_pedido = $nro_pedido");
+		return $this->db->fetchAll();
+	}
+	/**
+	* Función que registra un nuevo detalle de pedido.
+	*
+	* @param int $cod int con un codigo de producto
+	* @param int $cant int con la cantidad
+	* @param float $precio_compra float con el precio de compra
+	* @param int $nro_pedido int con el numero de pedido a detallar
+	*/
+	public function nuevoDetalle($cod,$cant,$precio_compra,$nro_pedido){
+		$this->db->query("INSERT INTO detalle_pedido(codigo_producto, cantidad, precio_compra, nro_pedido, nro_detalle_pedido) VALUES ($cod,$cant,$precio_compra,$nro_pedido,null)");
+	}
+}

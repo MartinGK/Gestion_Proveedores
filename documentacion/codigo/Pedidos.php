@@ -1,0 +1,177 @@
+<?php
+//models/Pedidos.php
+require_once '../models/Detalle_pedido.php';
+require_once '../models/Productos.php';
+require_once '../models/Usuarios.php';
+/**
+* Clase para pedidos
+*
+* @package Administracion_proveedores
+* @author Martin Gainza <martingkoulak@gmail.com>
+* @version 0.1
+*/
+class Pedidos extends Model {
+	/**
+	* Función que devuelve la informacion de los pedidos realizados.
+	*
+	* @param int $MULT es un int que se utiliza para limitar la cantidad de pedidos a mostrar
+	* @return array retorna un array con el conjunto de datos solicitados
+	*/
+	public function getInf_ped($MULT){
+		if(!ctype_digit($MULT)) die("error de numero de pagina");
+		if($MULT<1) die("error en el numero de pagina");
+		$MIN = ($MULT-1) * 15;
+		$this->db->query("	SELECT  p.nro_pedido, p.fecha_pedido fecha, p.cuit, 
+							pr.nombre, dp.cantidad, (pr.precio_venta*dp.cantidad) costo_total,estado_pedido
+							FROM pedidos p
+							LEFT JOIN detalle_pedido dp ON p.nro_pedido = dp.nro_pedido
+							LEFT JOIN productos pr ON pr.codigo_producto = dp.codigo_producto
+							LIMIT $MIN,15");
+		return $this->db->fetchAll();
+	}
+	/**
+	* Función que realiza el calculo de la ultima pagina posible y la retorna.
+	*
+	* @return int un int que representa la ultima pagina posible
+	*/
+	public function ultimaPagina(){
+		$this->db->query("SELECT  COUNT(p.nro_pedido) cantidad
+							FROM pedidos p
+							LEFT JOIN detalle_pedido dp ON p.nro_pedido = dp.nro_pedido
+							LEFT JOIN productos pr ON pr.codigo_producto = dp.codigo_producto ");
+		$fila = $this->db->fetch();
+		return ceil($fila["cantidad"] / 15);
+	}
+	/**
+	* Función que recibe la confirmacion de un pedido realizado.
+	*
+	* La función actualiza la base de datos de los productos disponibles, cambia el estado del pedido y envia un 
+	* email al contador con los datos del pedido.
+	*
+	* @param int $nro_pedido int que contiene el numero de pedido
+	* @param  string $cuit string que contiene el cuit del proveedor al que se le realizo el pedido
+	*/
+	public function  Act_nue_merc($nro_pedido,$cuit){
+		if(!ctype_digit($nro_pedido)) die("nro pedido erroneo");
+		if($nro_pedido<=0) die("error con el nro de pedido");
+		if(strlen($cuit)!=11) die("el cuit es erroneo");
+		$cuit = $this->db->escapeString($cuit);
+		$datos_ped = $this->getDatosPedido($nro_pedido,$cuit);
+		if($datos_ped["estado_pedido"]=='Concretada') die("El pedido ya fue recibido");
+		$detalles = (new Detalle_pedido)->darDetalles($nro_pedido);
+		$total = 0;$monto_total = 0;$mensaje="";
+		foreach($detalles as $d){
+			(new Productos)->sumarStock($d["codigo_producto"],$d["cantidad"]);
+			$total=$d["precio_compra"] * $d["cantidad"];
+		$mensaje = $mensaje . (new Productos)->getNom($d["codigo_producto"]) . " : " . $d["cantidad"] . " = $". $total . "
+		" ;
+			$monto_total=$monto_total +$total;
+		}
+		$this->cambiarEstadoPed("Concretada",$nro_pedido);
+		$datos_cont = (new Usuarios)->getInfoCont();
+		$email = $datos_cont["email"];
+		$hoy = date("Y-m-d");
+		$file = fopen("../MailsEnviados/Act_nue_merc-$nro_pedido.txt","w");
+		fputs($file,"to: $email
+			subject: Aviso de nueva mercaderia recibida
+			message: El gimnasio informa al Contador que en el dia de al fecha: $hoy Se concreto el pedido numero: $nro_pedido.
+			Detalles del pedido:
+				$mensaje.
+			El total gastado es de: $ $monto_total.
+			Atentamente, gerencia del gimnasio.");
+		fclose($file);
+	}
+	/**
+	* Función que devuelve los datos especificos de un pedido realizado.
+	*
+	* @param int $nro_pedido int que contiene el numero de pedido
+	* @param  string $cuit string que contiene el cuit del proveedor al que se le realizo el pedido
+	* @return array retorna un array con el conjunto de datos solicitados
+	*/
+	public function getDatosPedido($nro_pedido,$cuit){
+		$this->db->query("SELECT * FROM pedidos
+							WHERE nro_pedido = $nro_pedido
+							AND cuit = $cuit");
+		if($this->db->numRows()!=1) die("error en el numero de pedido");
+		return $this->db->fetch();
+	}
+	/**
+	* Función que cambia el estado de un pedido en especifico.
+	*
+	* @param string $estado string que contiene el nuevo estado del pedido
+	* @param int $nro_pedido int que contiene el numero de pedido
+	*/
+	public function cambiarEstadoPed($estado,$nro_pedido){
+		$this->db->query("UPDATE pedidos
+							SET estado_pedido = '$estado'
+							WHERE nro_pedido = $nro_pedido");
+	}
+	/**
+	* Función que envia los pedidos a los diferentes proveedores.
+	*
+	* @param int $conf es un int que confirma el envio del pedido
+	*/
+	public function enviarPedidos($conf){
+		if($conf!=1) die("error en el envio del pedido");
+		$provs = (new Proveedores)->getBasicInfo();
+		foreach($provs as $ps){
+		$mensaje = "";
+		$razon_social = $ps["razon_social"];
+		$email = $ps["email"];
+		$monto_total = 0;
+		$nro_pedido = 0;
+			foreach($_SESSION["carrito"] as $ped){
+				if($ped["cuit"]==$ps["cuit"]){
+					if ($nro_pedido==0) {
+						$this->nuevoPedido($ps["cuit"]);
+						$nro_pedido = $this->db->UltimoId();
+					}
+					$mensaje = $mensaje . $ped["cant"] ."   ". $ped["nombre"] .'     ($'. $ped["total"] .")\n
+					"; 
+					$monto_total = $monto_total + $ped["total"];
+					(new Detalle_pedido)->nuevoDetalle($ped["cod"],$ped["cant"],$ped["total"],$nro_pedido);
+				}
+			}
+			if(!$mensaje==""){
+				$file = fopen("../MailsEnviados/Ped_nue_merc-$nro_pedido.txt","w");
+				fputs($file,"to: $email
+					subject: Pedido de nueva mercaderia
+					message: El gimnasio solicita a $razon_social los siguiente productos:
+						$mensaje
+					El total a pagar seria de: $ $monto_total.
+					Su numero de pedido es el siguiente: $nro_pedido .
+					Atentamente, gerencia del gimnasio.");
+				fclose($file);
+			}
+		}
+		unset($_SESSION["carrito"]);
+	}
+	/**
+	* Función que registra un nuevo pedido.
+	*
+	* @param string $cuit string con el cuit del proveedor al que se le realizara el pedido
+	*/
+	public function nuevoPedido($cuit){
+		$hoy = date("Y/m/d");
+		$this->db->query("INSERT INTO pedidos(nro_pedido, fecha_pedido, direccion_entrega, cuit, estado_pedido) VALUES (null,'$hoy','Paris 532 Haedo','$cuit','Enviado')");
+	}
+	/**
+	* Funcion que elimina un pedido del carrito de compras
+	*
+	* @param string $cuit string con el cuit de un proveedor
+	* @param int $cod int con el codigo del producto
+	*/
+	public function eliminarPedido($cuit,$cod){
+		if(strlen($cuit)!=11) die("error cuit");
+		$cuit = $this->db->escapeString($_GET["cuit"]);
+
+		if(!ctype_digit($cod)) die("error cod");
+		if($cod<0) die("error cod");
+		
+		foreach ($_SESSION["carrito"] as $key => $pedido) {
+			if($pedido["cuit"]==$cuit && $pedido["cod"]==$cod)
+				$elim=$key;
+		}
+		if(isset($elim)) unset($_SESSION["carrito"][$elim]);
+	}
+}
